@@ -1,0 +1,145 @@
+[debug] [2023-08-04T00:26:21.376Z] ----------------------------------------------------------------------
+[debug] [2023-08-04T00:26:21.380Z] Command:       C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2023-08-04T00:26:21.380Z] CLI Version:   12.3.1
+[debug] [2023-08-04T00:26:21.381Z] Platform:      win32
+[debug] [2023-08-04T00:26:21.381Z] Node Version:  v16.14.1
+[debug] [2023-08-04T00:26:21.382Z] Time:          Thu Aug 03 2023 20:26:21 GMT-0400 (Eastern Daylight Time)
+[debug] [2023-08-04T00:26:21.382Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-08-04T00:26:21.394Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-08-04T00:26:21.395Z] > authorizing via signed-in user (brandenkerr7@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Branden\Desktop\Chat\Chat
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2023-08-04T00:26:32.229Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=100
+[debug] [2023-08-04T00:26:32.747Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2023-08-04T00:26:32.747Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] i  Using project chat-5531a (Chat) 
+[info] 
+=== Database Setup
+[info] i  database: ensuring required API firebasedatabase.googleapis.com is enabled... 
+[debug] [2023-08-04T00:26:34.074Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firebasedatabase.googleapis.com [none]
+[debug] [2023-08-04T00:26:34.074Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firebasedatabase.googleapis.com x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:35.150Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firebasedatabase.googleapis.com 200
+[debug] [2023-08-04T00:26:35.150Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firebasedatabase.googleapis.com [omitted]
+[info] +  database: required API firebasedatabase.googleapis.com is enabled 
+[info] 
+[debug] [2023-08-04T00:26:35.152Z] >>> [apiv2][query] GET https://firebasedatabase.googleapis.com/v1beta/projects/chat-5531a/locations/-/instances/chat-5531a-default-rtdb [none]
+[debug] [2023-08-04T00:26:35.528Z] <<< [apiv2][status] GET https://firebasedatabase.googleapis.com/v1beta/projects/chat-5531a/locations/-/instances/chat-5531a-default-rtdb 200
+[debug] [2023-08-04T00:26:35.528Z] <<< [apiv2][body] GET https://firebasedatabase.googleapis.com/v1beta/projects/chat-5531a/locations/-/instances/chat-5531a-default-rtdb {"name":"projects/212458283741/locations/us-central1/instances/chat-5531a-default-rtdb","project":"projects/212458283741","databaseUrl":"https://chat-5531a-default-rtdb.firebaseio.com","type":"DEFAULT_DATABASE","state":"ACTIVE"}
+[info] 
+[info] Firebase Realtime Database Security Rules allow you to define how your data should be
+[info] structured and when your data can be read from and written to.
+[info] 
+[debug] [2023-08-04T00:26:38.178Z] >>> [apiv2][query] GET https://chat-5531a-default-rtdb.firebaseio.com/.settings/rules.json [none]
+[debug] [2023-08-04T00:26:38.398Z] <<< [apiv2][status] GET https://chat-5531a-default-rtdb.firebaseio.com/.settings/rules.json 200
+[debug] [2023-08-04T00:26:38.399Z] <<< [apiv2][body] GET https://chat-5531a-default-rtdb.firebaseio.com/.settings/rules.json [stream]
+[info] +  Database Rules for chat-5531a-default-rtdb have been written to database.rules.json. 
+[info] Future modifications to database.rules.json will update Realtime Database Security Rules when you run
+[info] firebase deploy.
+[info] 
+=== Firestore Setup
+[debug] [2023-08-04T00:26:38.403Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firestore.googleapis.com [none]
+[debug] [2023-08-04T00:26:38.403Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firestore.googleapis.com x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:38.750Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firestore.googleapis.com 200
+[debug] [2023-08-04T00:26:38.750Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/firestore.googleapis.com [omitted]
+[debug] [2023-08-04T00:26:38.751Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default) [none]
+[debug] [2023-08-04T00:26:39.064Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default) 200
+[debug] [2023-08-04T00:26:39.064Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default) {"name":"projects/chat-5531a/databases/(default)","uid":"11317cc0-50fe-4328-b7e8-7978cc5cba86","createTime":"2023-07-30T19:52:42.238371Z","updateTime":"2023-07-30T19:52:42.238371Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2023-08-03T23:26:35.990914Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","etag":"IKiBv5jfwYADMJvt6Y2ct4AD"}
+[debug] [2023-08-04T00:26:39.065Z] database_type: FIRESTORE_NATIVE
+[debug] [2023-08-04T00:26:39.065Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-08-04T00:26:39.065Z] > authorizing via signed-in user (brandenkerr7@gmail.com)
+[debug] [2023-08-04T00:26:39.066Z] [iam] checking project chat-5531a for permissions ["firebase.projects.get"]
+[debug] [2023-08-04T00:26:39.066Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions [none]
+[debug] [2023-08-04T00:26:39.066Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:39.066Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2023-08-04T00:26:39.377Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions 200
+[debug] [2023-08-04T00:26:39.377Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[info] 
+[info] Firestore Security Rules allow you to define how and when to allow
+[info] requests. You can keep these rules in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2023-08-04T00:26:40.786Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/releases pageSize=10&pageToken=
+[debug] [2023-08-04T00:26:41.094Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/releases 200
+[debug] [2023-08-04T00:26:41.094Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/releases {"releases":[{"name":"projects/chat-5531a/releases/cloud.firestore","rulesetName":"projects/chat-5531a/rulesets/a0ca46e0-8015-49d1-a87f-f15696cb4e82","createTime":"2023-07-30T19:52:44.134532Z","updateTime":"2023-07-30T20:00:44.012304Z"}]}
+[debug] [2023-08-04T00:26:41.094Z] Found ruleset: projects/chat-5531a/rulesets/a0ca46e0-8015-49d1-a87f-f15696cb4e82
+[debug] [2023-08-04T00:26:41.095Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/rulesets/a0ca46e0-8015-49d1-a87f-f15696cb4e82 [none]
+[debug] [2023-08-04T00:26:41.343Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/rulesets/a0ca46e0-8015-49d1-a87f-f15696cb4e82 200
+[debug] [2023-08-04T00:26:41.344Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/chat-5531a/rulesets/a0ca46e0-8015-49d1-a87f-f15696cb4e82 [omitted]
+[info] 
+[info] Firestore indexes allow you to perform complex queries while
+[info] maintaining performance that scales with the size of the result
+[info] set. You can keep index definitions in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2023-08-04T00:26:43.780Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2023-08-04T00:26:43.782Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2023-08-04T00:26:44.106Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2023-08-04T00:26:44.106Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/chat-5531a/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}}]}
+[debug] [2023-08-04T00:26:44.107Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2023-08-04T00:26:44.107Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/chat-5531a/databases/(default)/collectionGroups/-/indexes {}
+[info] 
+=== Functions Setup
+[debug] [2023-08-04T00:26:44.109Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-08-04T00:26:44.109Z] > authorizing via signed-in user (brandenkerr7@gmail.com)
+[debug] [2023-08-04T00:26:44.109Z] [iam] checking project chat-5531a for permissions ["firebase.projects.get"]
+[debug] [2023-08-04T00:26:44.111Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions [none]
+[debug] [2023-08-04T00:26:44.111Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:44.111Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2023-08-04T00:26:44.383Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions 200
+[debug] [2023-08-04T00:26:44.383Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/chat-5531a:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2023-08-04T00:26:44.384Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/cloudfunctions.googleapis.com [none]
+[debug] [2023-08-04T00:26:44.384Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:44.386Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/runtimeconfig.googleapis.com [none]
+[debug] [2023-08-04T00:26:44.386Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/chat-5531a
+[debug] [2023-08-04T00:26:44.752Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/runtimeconfig.googleapis.com 200
+[debug] [2023-08-04T00:26:44.752Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2023-08-04T00:26:44.754Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/cloudfunctions.googleapis.com 200
+[debug] [2023-08-04T00:26:44.754Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/chat-5531a/services/cloudfunctions.googleapis.com [omitted]
+[info] 
+Detected existing codebase(s): default
+
+[info] 
+Overwriting codebase default...
+
+[info] +  Wrote functions/package.json 
+[info] +  Wrote functions/tsconfig.json 
+[info] +  Wrote functions/src/index.ts 
+[info] +  Wrote functions/.gitignore 
+[info] 
+=== Storage Setup
+[info] 
+[info] Firebase Storage Security Rules allow you to define how and when to allow
+[info] uploads and downloads. You can keep these rules in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[info] +  Wrote storage.rules 
+[info] 
+=== Emulators Setup
+[info] 
+[info] i  Writing configuration info to firebase.json... 
+[info] i  Writing project information to .firebaserc... 
+[info] 
+[info] +  Firebase initialization complete! 
+[debug] [2023-08-04T00:28:40.583Z] Error: Timed out.
+    at Timeout.<anonymous> (C:\Users\Branden\AppData\Roaming\nvm\v16.14.1\node_modules\firebase-tools\lib\utils.js:253:49)
+    at listOnTimeout (node:internal/timers:559:17)
+    at processTimers (node:internal/timers:502:7)
+[error] 
+[error] Error: An unexpected error has occurred.
