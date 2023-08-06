@@ -37,3 +37,15 @@ export const SettingsModalProvider = ({ children }: ProviderProps) => {
     </SettingsModalContext.Provider>
   );
 };
+
+export const NewChatModalContext = createContext<ModalContextProps>(initialState);
+
+export const NewChatModalProvider = ({ children }: ProviderProps) => {
+  const modal = useModal();
+
+  return (
+    <NewChatModalContext.Provider value={modal}>
+      {children}
+    </NewChatModalContext.Provider>
+  );
+};

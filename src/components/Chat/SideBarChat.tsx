@@ -2,7 +2,7 @@ import React, { useEffect, useContext } from "react";
 import { Conversation } from "../../types";
 import { formatDate } from "../../hooks/formatDate";
 import { AuthContext } from "../Authentication/context/authContext";
-import { SettingsModalContext } from '../../Contexts/ModalContext';
+import { SettingsModalContext, NewChatModalContext } from '../../Contexts/ModalContext';
 import EditIcon from '@mui/icons-material/Edit';
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import ChatIcon from '@mui/icons-material/Chat';
@@ -27,6 +27,8 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
   const { profile } = useContext(AuthContext);
   const { myFS }: any = useContext(FirebaseContext);
   const { toggle: toggleSettings } = useContext(SettingsModalContext);
+  const { toggle: toggleNewChat } = useContext(NewChatModalContext);
+
 
   const avatarUrl = profile.displayPicture ? profile.displayPicture : '';
 
@@ -102,6 +104,7 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                 display: 'flex',
                 justifyContent: 'flex-start'
               }}
+              onClick={toggleNewChat}
             >
               <ChatIcon
                 style={{
@@ -204,6 +207,7 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                   padding: '0.5em 1em',
                   cursor: 'pointer',
                 }}
+                onClick={toggleNewChat}
               >
                 Create One
               </button>

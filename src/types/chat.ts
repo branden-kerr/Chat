@@ -12,6 +12,9 @@ export interface Conversation {
   id: string;
   otherPersonId: string;
   username: string;
+  // TODO potentially make these non optional
+  firstName?: string;
+  lastName?: string;
   lastMessage: string;
   lastInteractionTime?: any;
   displayPicture: string;

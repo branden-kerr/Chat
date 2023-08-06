@@ -12,8 +12,9 @@ import { collection, doc, getDocs, orderBy, query, setDoc, where } from "firebas
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, onValue, push, ref, serverTimestamp, set } from "firebase/database";
 import { useLocation } from 'react-router-dom';
-import { SettingsModalContext } from '../../Contexts/ModalContext';
+import { SettingsModalContext, NewChatModalContext } from '../../Contexts/ModalContext';
 import SettingsModal from "../modals/SettingsModal";
+import NewChatModal from "../modals/NewChatModal";
 
 interface ChatListProps {
   messages?: Message[];
@@ -49,6 +50,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
   const [gotConversations, setGotConversations] = useState(false);
   const [firstMessage, setFirstMessage] = useState<boolean>(false);
   const { isOpen: isSettingsOpen, toggle: toggleSettings } = useContext(SettingsModalContext);
+  const { isOpen: isNewChatOpen, toggle: toggleNewChat } = useContext(NewChatModalContext);
 
   useEffect(() => {
     if (retrievedUser && !addedToConversations) {
@@ -264,7 +266,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
 
 
   useEffect(() => {
-    if (profile && profile.uid && !gotConversations) {
+    if (profile && profile.uid) {
       const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
       getDocs(orderedConversationsRef)
         .then(async (querySnapshot) => {
@@ -272,6 +274,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
             return doc.data() as Conversation;
           });
           if (fetchedConversations.length > 0) {
+            alert('true!')
             setConversations(fetchedConversations);
             setSelectedConversation(fetchedConversations[fetchedConversations.length - 1].id);
           }
@@ -279,7 +282,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       setGotConversations(true);
       setLoading(false);
     }
-  }, [profile, gotConversations, myFS, setSelectedConversation]);
+  }, [profile, gotConversations, myFS, selectedConversation]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -320,25 +323,6 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       backgroundColor: theme.colors.primary,
       alignSelf: 'flex-start'
     } as React.CSSProperties,
-    fieldStyle: {
-      width: '100%',
-      padding: '10px',
-      borderRadius: '4px',
-      border: '1px solid #ccd0d5'
-    },
-    settingsFormButtonSave: {
-      width: '50%',
-      padding: '10px',
-      backgroundColor: '#1da1f2',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      fontSize: '1.2rem',
-      fontWeight: 'bold',
-      transition: 'all 0.3s ease',
-      marginTop: '10px',
-      alignSelf: 'center',
-    }
   };
 
   return (
@@ -423,6 +407,11 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       {isSettingsOpen && (
         <SettingsModal />
       )}
+      {
+        isNewChatOpen && (
+          <NewChatModal setSelectedConversation={setSelectedConversation} />
+        )
+      }
     </>
   );
 };
