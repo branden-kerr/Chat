@@ -33,6 +33,7 @@ const StyledListItem = styled('li')({
   },
 });
 const StyledDeleteIcon = styled(DeleteIcon)({
+  fontSize: '1.2em',
   transition: 'all 0.3s ease-in-out',
   '&:hover': {
     color: 'red',
@@ -195,13 +196,14 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                   >
                     <div
                       style={{
-                        display: 'flex'
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
                     >
                       <img
                         style={{
-                          height: '65px',
-                          width: '65px',
+                          height: '60px',
+                          width: '60px',
                           borderRadius: '50%',
                           marginRight: '15px',
                           outline: '2px solid white',
@@ -218,7 +220,7 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                         <span
                           style={{
                             fontWeight: 'bold',
-                            fontSize: '1.2em',
+                            fontSize: '1em',
                             cursor: 'pointer',
                           }}
                         >
@@ -230,6 +232,7 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                           style={{
                             display: 'flex',
                             flexDirection: 'column',
+                            fontSize: '.75em',
                           }}
                         >
                           <span>
@@ -245,9 +248,7 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                           </span>
                         </div>
                       </div>
-
                     </div>
-
                     <div
                       style={{
                         display: 'flex',
@@ -256,18 +257,19 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                         justifyContent: 'space-evenly',
                       }}
                     >
-                      <ArrowForwardIcon />
-                      <StyledDeleteIcon
+                      <ArrowForwardIcon
+                        style={{
+                          fontSize: '1.2em',
 
+                        }}
+                      />
+                      <StyledDeleteIcon
                         onClick={() => {
                           handleDeleteConversation(conversation.id)
                         }
                         }
                       />
-
                     </div>
-
-
                   </StyledListItem>
                 )
               })

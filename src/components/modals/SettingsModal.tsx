@@ -7,6 +7,7 @@ import { SettingsModalContext } from '../../Contexts/ModalContext';
 import { Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import { getDownloadURL, uploadBytesResumable, ref as storageRef } from "firebase/storage";
+import { toast } from 'react-hot-toast';
 
 const SettingsModal: React.FC = () => {
   const { profile } = useContext(AuthContext);
@@ -124,8 +125,10 @@ const SettingsModal: React.FC = () => {
                   userDocData.displayPicture = downloadURL;
                   try {
                     await setDoc(userDocRef, userDocData, { merge: true });
+                    toast.success('Profile updated successfully!');
                   } catch (e) {
                     console.log(e);
+                    toast.error('An error occurred while updating the profile.');
                   }
                   toggleSettings();
                 }
@@ -154,6 +157,8 @@ const SettingsModal: React.FC = () => {
                   id="username"
                   name="username"
                 />
+                {errors.username && touched.username && typeof errors.username === 'string' ?
+                  <div style={{ color: 'red', padding: '5px' }}>{errors.username}</div> : null}
               </div>
               <div
                 style={{
@@ -172,6 +177,8 @@ const SettingsModal: React.FC = () => {
                   id="firstName"
                   name="firstName"
                 />
+                {errors.firstName && touched.firstName && typeof errors.firstName === 'string' ?
+                  <div style={{ color: 'red', padding: '5px' }}>{errors.firstName}</div> : null}
               </div>
               <div
                 style={{
@@ -190,6 +197,8 @@ const SettingsModal: React.FC = () => {
                   id="lastName"
                   name="lastName"
                 />
+                {errors.lastName && touched.lastName && typeof errors.lastName === 'string' ?
+                  <div style={{ color: 'red', padding: '5px' }}>{errors.lastName}</div> : null}
               </div>
               <div
                 style={{
@@ -208,6 +217,8 @@ const SettingsModal: React.FC = () => {
                   id="email"
                   name="email"
                 />
+                {errors.email && touched.email && typeof errors.email === 'string' ?
+                  <div style={{ color: 'red', padding: '5px' }}>{errors.email}</div> : null}
               </div>
               <div
                 style={{
