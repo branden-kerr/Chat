@@ -15,7 +15,7 @@ export interface Conversation {
   // TODO potentially make these non optional
   firstName?: string;
   lastName?: string;
-  lastMessage: string;
+  lastMessage?: string;
   lastInteractionTime?: any;
   displayPicture: string;
 }

@@ -8,18 +8,40 @@ import { AuthContext } from "../Authentication/context/authContext";
 import ThemeContext from "../../Theme/ThemeContext";
 import SideBarChat from "./SideBarChat";
 import ChatInput from "./ChatInput";
-import { collection, doc, getDocs, orderBy, query, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, ref, serverTimestamp, set, orderByChild } from "firebase/database";
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
-import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, onValue, push, ref, serverTimestamp, set } from "firebase/database";
 import { useLocation } from 'react-router-dom';
 import { SettingsModalContext, NewChatModalContext } from '../../Contexts/ModalContext';
 import SettingsModal from "../modals/SettingsModal";
 import NewChatModal from "../modals/NewChatModal";
+import DeleteIcon from '@mui/icons-material/Delete';
+import { styled } from '@mui/system';
 
 interface ChatListProps {
   messages?: Message[];
 }
 
+const MessageContainer = styled('div')({
+  display: 'inline-flex',
+  alignItems: 'center',
+  maxWidth: '60%',
+  alignSelf: 'flex-end',
+  position: 'relative',
+  '&:hover .delete-icon': {
+    opacity: 1,
+    transform: 'scale(1)',
+  },
+});
+
+const StyledDeleteIcon = styled(DeleteIcon)({
+  cursor: 'pointer',
+  marginRight: '5px',
+  color: '#9e9e9e',
+  fontSize: '20px',
+  opacity: 0,
+  transition: 'opacity 0.2s, transform 0.2s',
+});
 function generateRandomTime(number?: boolean): any {
   const currentTime = new Date();
   const pastTime = faker.date.between(faker.date.recent(), currentTime);
@@ -32,7 +54,7 @@ function generateRandomTime(number?: boolean): any {
     ` ${tempDateNumber.getDay()}/${tempDateNumber.getMonth()}/${tempDateNumber.getFullYear()}/`
   )
 }
-const ChatList: React.FC<ChatListProps> = ({ messages }) => {
+const ChatList: React.FC<ChatListProps> = () => {
   const [messageCount, setMessageCount] = useState(50);
   const { profile } = useContext(AuthContext);
   const { myFS, myRLDB, myStorage } = useContext(FirebaseContext);
@@ -43,7 +65,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<string>();
   const [messagesCache, setMessagesCache] = useState<Record<string, Message[]>>({});
-  let messagesArray: Message[] = [];
+  let messagesArray: Message[] | undefined = undefined;
   const location = useLocation();
   const retrievedUser = location.state?.retrievedUser;
   const [addedToConversations, setAddedToConversations] = useState(false);
@@ -51,6 +73,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
   const [firstMessage, setFirstMessage] = useState<boolean>(false);
   const { isOpen: isSettingsOpen, toggle: toggleSettings } = useContext(SettingsModalContext);
   const { isOpen: isNewChatOpen, toggle: toggleNewChat } = useContext(NewChatModalContext);
+
 
   useEffect(() => {
     if (retrievedUser && !addedToConversations) {
@@ -93,44 +116,45 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
 
   const addMessageToConversation = (messageContent: string) => {
     if (selectedConversation && profile?.uid) {
-      const newMessageId = uuidv4(); // Generate a new id for the message
+      const newMessageId = uuidv4();
       const newMessage: Message = {
         id: newMessageId,
         senderId: profile.uid,
         content: messageContent,
-        timeSent: serverTimestamp() as any, // Use Firebase's serverTimestamp function
-        type: 'text', // Assuming all messages sent through the input are text
+        timeSent: serverTimestamp() as any,
+        type: 'text',
       };
-
-      // Add the new message to the cache
       setMessagesCache(prevCache => ({
         ...prevCache,
         [selectedConversation]: [...(prevCache[selectedConversation] || []), newMessage]
       }));
-
-      // Add the new message to the database
       const messagesRef = ref(myRLDB, `conversations/${selectedConversation}/messages/${newMessageId}`);
       set(messagesRef, newMessage)
         .then(() => {
-          // After the message is successfully saved, set up a one-time listener to get the actual timestamp
           get(messagesRef)
             .then((snapshot) => {
               const actualMessage = snapshot.val();
-
-              // Update the cached message with the actual timestamp
               setMessagesCache(prevCache => {
                 const updatedMessages = prevCache[selectedConversation]?.map(msg =>
                   msg.id === newMessageId ? { ...msg, timeSent: actualMessage.timeSent } : msg
                 );
-
                 return {
                   ...prevCache,
                   [selectedConversation]: updatedMessages
                 };
               });
+              // Locally changes conversations to reflect the lastInteractionTime and lastMessage
+              const ConversationToUpdate = conversations.findIndex(conversation => conversation.id === selectedConversation);
+              setConversations(prevConversations => {
+                const updatedConversation = { ...prevConversations[ConversationToUpdate] };
+                updatedConversation.lastMessage = actualMessage.content;
+                updatedConversation.lastInteractionTime = actualMessage.timeSent;
+                const updatedConversations = [...prevConversations];
+                updatedConversations[ConversationToUpdate] = updatedConversation;
+                return updatedConversations;
+              });
 
               if (retrievedUser && firstMessage) {
-                // Define the new conversation
                 const conversation: Conversation = {
                   id: selectedConversation,
                   otherPersonId: retrievedUser.uid,
@@ -147,13 +171,9 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
                   lastInteractionTime: actualMessage.timeSent,
                   displayPicture: profile.displayPicture,
                 };
-
-                // Add the new conversation to both users' documents
                 const user1ConversationRef = doc(myFS, 'users', profile.uid, 'conversations', `${conversation.id}_${profile.username}`);
                 const user2ConversationRef = doc(myFS, 'users', retrievedUser.uid, 'conversations', `${conversation.id}_${retrievedUser.username}`);
-
                 setFirstMessage(false);
-
                 return Promise.all([
                   setDoc(user1ConversationRef, conversation),
                   setDoc(user2ConversationRef, conversationForOther),
@@ -163,11 +183,8 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
         })
         .catch((error) => {
           console.error("Error adding message: ", error);
-
-          // If there's an error, remove the message from the cache
           setMessagesCache(prevCache => {
             const updatedMessages = prevCache[selectedConversation]?.filter(msg => msg.id !== newMessageId);
-
             return {
               ...prevCache,
               [selectedConversation]: updatedMessages
@@ -177,21 +194,58 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
     }
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    if (selectedConversation) {
+      // Remove the message from the cache
+      const updatedMessages = messagesCache[selectedConversation]?.filter((msg) => msg.id !== messageId) || [];
+      const messageToDelete = messagesCache[selectedConversation]?.find((msg) => msg.id === messageId);
+
+      setMessagesCache((prevCache) => ({
+        ...prevCache,
+        [selectedConversation]: updatedMessages,
+      }));
+
+      // Delete the message from the database
+      const messageRef = ref(myRLDB, `conversations/${selectedConversation}/messages/${messageId}`);
+      set(messageRef, null).catch((error) => {
+        console.error("Error deleting message: ", error);
+
+        // If there's an error, add the message back to the cache at the correct position
+        setMessagesCache((prevCache) => {
+          const prevMessages = prevCache[selectedConversation] || [];
+          const messageIndex = prevMessages.findIndex((msg) => msg.id === messageId);
+
+          if (messageIndex >= 0 && messageToDelete) {
+            const updatedMessages = [
+              ...prevMessages.slice(0, messageIndex),
+              messageToDelete,
+              ...prevMessages.slice(messageIndex),
+            ];
+
+            return {
+              ...prevCache,
+              [selectedConversation]: updatedMessages,
+            };
+          }
+
+          return prevCache;
+        });
+      });
+    }
+  };
+
   useEffect(() => {
     if (selectedConversation) {
       const messagesRef = ref(myRLDB, `conversations/${selectedConversation}/messages`);
-      const limitedMessagesRef = rtdbQuery(messagesRef, limitToLast(50)); // Only retrieve the last 50 messages initially
+      const limitedMessagesRef = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(50));
 
-      // Handle new messages.
       const handleNewMessage = (snapshot: any) => {
         const message = snapshot.val();
         const id = snapshot.key;
 
         setMessagesCache(prevCache => {
-          // Get the existing messages for the conversation or an empty array if it's not in the cache.
           const existingMessages = prevCache[selectedConversation] || [];
 
-          // Check if the message already exists in the cache.
           if (existingMessages.some(msg => msg.id === id)) return prevCache;
 
           return {
@@ -227,7 +281,6 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       };
 
 
-      // Handle deleted messages.
       const handleRemovedMessage = (snapshot: any) => {
         const id = snapshot.key;
 
@@ -264,21 +317,108 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
     }
   }, [selectedConversation]);
 
+  // useEffect(() => {
+  //   if (profile && profile.uid && !gotConversations) {
+  //     try {
+  //       const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
+  //       getDocs(orderedConversationsRef)
+  //         .then(async (querySnapshot) => {
+  //           const fetchedConversations = querySnapshot.docs.map((doc) => {
+  //             return doc.data() as Conversation;
+  //           });
+
+  //           const newFetchedConversations = await Promise.all(
+  //             fetchedConversations.map(async (conversation) => {
+  //               const newConversation = { ...conversation };
+  //               const messagesRef = ref(myRLDB, `conversations/${conversation.id}/messages`);
+  //               const messagesQuery = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
+  //               const messagesSnapshot = await get(messagesQuery);
+
+  //               if (!messagesSnapshot.exists()) {
+  //                 messagesSnapshot.forEach((messageSnapshot) => {
+  //                   const message = messageSnapshot.val();
+  //                   const messageId = messageSnapshot.key;
+
+  //                   newConversation.lastInteractionTime = message.timeSent;
+  //                   newConversation.lastMessage = message.content || '';
+  //                 });
+  //               } else {
+  //                 newConversation.lastInteractionTime = new Date();
+  //                 newConversation.lastMessage = '';
+  //               }
+
+  //               const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${conversation.id}`);
+  //               await updateDoc(conversationFirestoreRef, {
+  //                 lastInteractionTime: newConversation.lastInteractionTime,
+  //                 lastMessage: 'newConversation.lastMessage',
+  //               });
+
+  //               return newConversation;
+  //             })
+  //           );
+
+  //           if (newFetchedConversations.length > 0) {
+  //             setConversations(newFetchedConversations);
+  //             if (!selectedConversation) {
+  //               setSelectedConversation(newFetchedConversations[0].id);
+  //             }
+  //           }
+  //         });
+  //     } catch (e) {
+  //       console.log(e);
+  //     }
+  //     setGotConversations(true);
+  //     setLoading(false);
+  //   }
+  // }, [profile, gotConversations, myFS, selectedConversation]);
 
   useEffect(() => {
-    if (profile && profile.uid) {
-      const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
-      getDocs(orderedConversationsRef)
-        .then(async (querySnapshot) => {
-          const fetchedConversations = querySnapshot.docs.map(doc => {
-            return doc.data() as Conversation;
+    if (profile && profile.uid && !gotConversations) {
+      try {
+        const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
+        getDocs(orderedConversationsRef)
+          .then(async (querySnapshot) => {
+            const fetchedConversations = querySnapshot.docs.map(doc => {
+              return doc.data() as Conversation;
+            });
+
+            const newFetchedConversations = await Promise.all(
+              fetchedConversations.map(async (conversation) => {
+                const newConversation = { ...conversation };
+                const messagesRef = ref(myRLDB, `conversations/${conversation.id}/messages`);
+                const limitedMessagesRef = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
+                const messagesSnapshot = await get(limitedMessagesRef);
+                const message = messagesSnapshot.val() || {};
+
+                if (messagesSnapshot.exists()) {
+                  const messageValue = Object.values(message)[0] as Message;
+                  const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${conversation.id}`);
+                  await updateDoc(conversationFirestoreRef, {
+                    lastInteractionTime: messageValue.timeSent,
+                    lastMessage: messageValue.content ? messageValue.content : '',
+                  });
+
+                  newConversation.lastInteractionTime = messageValue.timeSent;
+                  newConversation.lastMessage = messageValue.content ? messageValue.content : '';
+                } else {
+                  newConversation.lastInteractionTime = new Date();
+                  newConversation.lastMessage = '';
+                }
+
+                return newConversation;
+              })
+            );
+
+            if (newFetchedConversations.length > 0) {
+              setConversations(newFetchedConversations);
+              if (!selectedConversation) {
+                setSelectedConversation(newFetchedConversations[0].id);
+              }
+            }
           });
-          if (fetchedConversations.length > 0) {
-            alert('true!')
-            setConversations(fetchedConversations);
-            setSelectedConversation(fetchedConversations[fetchedConversations.length - 1].id);
-          }
-        })
+      } catch (e) {
+        console.log(e);
+      }
       setGotConversations(true);
       setLoading(false);
     }
@@ -310,14 +450,14 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       flexDirection: 'column'
     } as React.CSSProperties,
     message: {
-      borderRadius: '10%',
+      borderRadius: '10px',
       padding: '5px',
       marginTop: '10px',
+      maxWidth: '60%',
       marginBottom: '10px',
     } as React.CSSProperties,
     sentMessage: {
       backgroundColor: theme.colors.tertiary,
-      alignSelf: 'flex-end'
     } as React.CSSProperties,
     receivedMessage: {
       backgroundColor: theme.colors.primary,
@@ -359,7 +499,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
               loader={
                 firstMessage ? (
                   <div className="flex justify-center py-3">
-                    Send your first message to {retrievedUser?.username}
+                    {`Send your first message to ${conversations[conversations.findIndex(conversation => conversation.id === selectedConversation)].firstName} `}
                   </div>
                 ) : (
                   <div className="flex justify-center py-3">
@@ -368,18 +508,32 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
                 )
               }
             >
-              {messagesArray.length > 0 && messagesArray.map((item, index) => {
+              {messagesArray && messagesArray.length > 0 && messagesArray.map((item, index) => {
                 return (
                   item.senderId === profile?.uid ? (
                     <div
                       style={styles.messageDivContainer}
                     >
-                      <span style={{
-                        ...styles.message, ...styles.sentMessage,
-                      }}
-                      >
-                        {item.content}
-                      </span>
+                      <MessageContainer>
+                        {item.senderId === profile?.uid && (
+                          <StyledDeleteIcon
+                            className="delete-icon"
+                            onClick={() => {
+                              handleDeleteMessage(item.id);
+                            }}
+                          />
+                        )}
+                        <span
+                          style={{
+                            ...styles.message,
+                            ...styles.sentMessage,
+                            maxWidth: 'max-content',
+                          }}
+                        >
+                          {item.content}
+
+                        </span>
+                      </MessageContainer>
                     </div>
                   ) : (
                     <div
@@ -409,7 +563,7 @@ const ChatList: React.FC<ChatListProps> = ({ messages }) => {
       )}
       {
         isNewChatOpen && (
-          <NewChatModal setSelectedConversation={setSelectedConversation} />
+          <NewChatModal setSelectedConversation={setSelectedConversation} setGotConversations={setGotConversations} />
         )
       }
     </>

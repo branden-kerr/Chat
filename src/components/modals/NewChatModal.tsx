@@ -1,15 +1,18 @@
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../Authentication/context/authContext";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, Timestamp } from "firebase/firestore";
 import CloseIcon from '@mui/icons-material/Close';
 import { NewChatModalContext } from '../../Contexts/ModalContext';
 import { Conversation } from '../../types';
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import dummyConversationData from "../../data/dummyConversationData";
 import { v4 as uuidv4 } from 'uuid';
+import { faker } from '@faker-js/faker';
+import { set } from "firebase/database";
 
 interface NewChatModalProps {
   setSelectedConversation: (conversation: string) => void;
+  setGotConversations: (gotConversations: boolean) => void;
 }
 
 const NewChatModal: React.FC<NewChatModalProps> = (props) => {
@@ -17,35 +20,33 @@ const NewChatModal: React.FC<NewChatModalProps> = (props) => {
   const { myFS } = useContext(FirebaseContext);
   const { toggle: toggleNewChat } = useContext(NewChatModalContext);
   const [selectedPerson, setSelectedPerson] = useState<Conversation | null>(null);
-  const { setSelectedConversation } = props;
+  const { setSelectedConversation, setGotConversations } = props;
 
   const handlePersonSelect = (person: Conversation) => {
     setSelectedPerson(person);
   };
 
-  const handleConversationInitiate = () => {
+  const handleConversationInitiate = async () => {
     if (selectedPerson) {
-      const conversationData = {
+      const newConversationID = uuidv4();
+      const conversationData: Conversation = {
+        id: newConversationID,
         otherPersonId: selectedPerson.otherPersonId,
         username: selectedPerson.username,
         firstName: selectedPerson.firstName,
         lastName: selectedPerson.lastName,
-        lastMessage: "",
+        lastInteractionTime: new Date(),
         displayPicture: selectedPerson.displayPicture,
-        lastInteraction: new Date(),
       };
-
-      const newConversationID = uuidv4();
-
       const conversationsRef = doc(myFS, `users/${profile.uid}/conversations/${newConversationID}`);
-      setDoc(conversationsRef, conversationData)
+      await setDoc(conversationsRef, conversationData)
         .then(() => {
           setSelectedConversation(newConversationID);
+          setGotConversations(false);
           toggleNewChat();
         })
         .catch((error: any) => {
           console.error("Error creating conversation:", error);
-
         });
     }
   };

@@ -1,11 +1,14 @@
-export function formatDate(timestamp: any, timeSinceDisplay: boolean, type: 'timestamp' | 'date' = 'timestamp') {
+export function formatDate(timestamp: any, timeSinceDisplay: boolean) {
+
   let formattedDate;
 
-  if (type === 'timestamp') {
+  const isTimestamp = typeof timestamp === 'object' && timestamp.seconds && timestamp.nanoseconds;
+
+  if (isTimestamp) {
     formattedDate = new Date(
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000
     );
-  } else if (type === 'date') {
+  } else if (!isTimestamp) {
     formattedDate = new Date(timestamp);
   } else {
     throw new Error('Invalid type parameter. Expected "timestamp" or "date".');

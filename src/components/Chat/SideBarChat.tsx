@@ -6,14 +6,32 @@ import { SettingsModalContext, NewChatModalContext } from '../../Contexts/ModalC
 import EditIcon from '@mui/icons-material/Edit';
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import ChatIcon from '@mui/icons-material/Chat';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { styled } from '@mui/system';
+
 
 const styles = {
   SideBarcontainer: {
-    overflowY: 'scroll',
     backgroundColor: '#13141A',
   } as React.CSSProperties,
 }
 
+const StyledListItem = styled('li')({
+  position: 'relative',
+  padding: '0 50px',
+  color: 'white',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  height: '12%',
+  cursor: 'pointer',
+  '&:nth-of-type(odd)': {
+    backgroundColor: '#1a1c24',
+  },
+  '&:hover': {
+    backgroundColor: '#2a2c34', // or any other color
+  },
+});
 interface SideBarChatProps {
   conversations: Conversation[];
   onClick: (conversation: any) => void;
@@ -43,6 +61,9 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
       <div
         style={{
           gridColumn: '1 / 3',
+          display: 'grid',
+          gridTemplateRows: '15% 85%',
+          gridTemplateColumns: '100%',
         }}
       >
         <div
@@ -53,7 +74,9 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '0 20px',
-            height: '15%',
+            // height: '15%',
+            gridRow: '1/2',
+            gridColumn: '1/2',
             color: '#FFFFFF',
           }}
         >
@@ -119,54 +142,75 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
         </div>
         {conversations.length > 0 ? (
           <ul
-            style={styles.SideBarcontainer}
+            style={{
+              ...styles.SideBarcontainer,
+              gridRow: '2/3',
+              gridColumn: '1/2',
+              borderRight: '1px solid #2a2d39',
+              height: '100%',
+            }}
           >
             {
               conversations.map((conversation: any, index: any) => {
 
-                let formattedDate;
-                try {
-                  formattedDate = formatDate(conversation.lastInteractionTime, false);
-                } catch (error) {
-                  console.error('Failed to format date:', error);
-                }
-
                 return (
-                  <li
-                    className="flex items-center space-between my-2 min-h-150 "
+                  <StyledListItem
                     key={conversation.id}
-                    style={{ position: 'relative', backgroundColor: (conversation.id === props.selectedConversation || retrievedUser) ? 'lightgray' : 'green' }}
                     onClick={() => props.onClick(conversation.id)}
                     ref={index === conversations.length - 1 ? endOfMessagesRef : null}
                   >
-                    <img
-                      className="h-[65px] w-[65px] rounded-full self-center "
-                      src={conversation.displayPicture} alt=""
-                    />
-                    <div className="flex flex-col"
-
-                    >
-                      <span className="font-bold text-md cursor-pointer">
-                        <strong>
-                          {conversation.username}
-                        </strong>
-                      </span>
-                      <div className=" vg-red-300 text-sm">
-                        <span>{conversation.lastMessage}</span>
-                        <span
-                          style={{ fontStyle: 'italic' }}
-                        >  {formatDate(conversation.lastInteractionTime, false, "date")}
-                        </span>
-                      </div>
-                    </div>
-                    <i className="fas fa-arrow-right self-start  cursor-pointer"
+                    <div
                       style={{
-                        position: 'absolute',
-                        top: 5,
-                        right: 5
+                        display: 'flex'
                       }}
-                    ></i>
-                  </li>
+                    >
+                      <img
+                        style={{
+                          height: '65px',
+                          width: '65px',
+                          borderRadius: '50%',
+                          marginRight: '15px',
+                          outline: '2px solid white',
+                        }}
+                        src={conversation.displayPicture}
+                        alt=""
+                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 'bold',
+                            fontSize: '1.2em',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <strong>
+                            {conversation.username}
+                          </strong>
+                        </span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <span>
+                            {conversation.lastMessage ? conversation.lastMessage : 'No messages yet'}
+                          </span>
+                          <span
+                            style={{ fontStyle: 'italic' }}
+                          >  {formatDate(conversation.lastInteractionTime, false)}
+                          </span>
+                        </div>
+                      </div>
+
+                    </div>
+                    <ArrowForwardIcon />
+                  </StyledListItem>
                 )
               })
             }

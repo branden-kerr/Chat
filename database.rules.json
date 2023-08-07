@@ -1,6 +1,13 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false
+    ".read": true,
+    ".write": true,
+    "conversations": {
+      "$conversationId": {
+        "messages": {
+          ".indexOn": "timeSent"
+        }
+      }
+    }
   }
 }
