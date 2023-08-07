@@ -5,8 +5,7 @@ import { AuthContext } from '../Authentication/context/authContext';
 
 const LoginForm: React.FC = () => {
 
-  const { myFS } = useContext(FirebaseContext);
-  const { googleSignIn, login } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
 
   const handleLogin = (values: any) => {
     login(values.email, values.password);
@@ -21,11 +20,12 @@ const LoginForm: React.FC = () => {
       <Form style={{
         display: 'flex',
         flexDirection: 'column',
-        maxWidth: '300px',
-        height: '100%',
-        justifyContent: 'space-evenly'
+        justifyContent: 'space-between',
+        height: '80%',
+        width: '100%',
+        position: 'relative',
       }}>
-        <div>
+        <div >
           <div style={{ marginBottom: '1rem' }}>
             <label htmlFor="email" style={{ fontWeight: 'bold' }}>
               Email:
@@ -45,31 +45,37 @@ const LoginForm: React.FC = () => {
             <ErrorMessage
               name="email"
               component="div"
-              style={{ color: 'red', marginTop: '0.5rem' }}
+              style={{
+                color: 'red',
+                marginTop: '0.5rem'
+              }}
             />
           </div>
           <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="password"
+              style={{
+                fontWeight: 'bold'
+              }}>
+              Password:
+            </label>
+            <Field
+              type="password"
+              name="password"
+              id="password"
+              required
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #ddd',
+                width: '100%',
+              }}
+            />
+            <ErrorMessage
+              name="password"
+              component="div"
+              style={{ color: 'red', marginTop: '0.5rem' }}
+            />
           </div>
-          <label htmlFor="password" style={{ fontWeight: 'bold' }}>
-            Password:
-          </label>
-          <Field
-            type="password"
-            name="password"
-            id="password"
-            required
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ddd',
-              width: '100%',
-            }}
-          />
-          <ErrorMessage
-            name="password"
-            component="div"
-            style={{ color: 'red', marginTop: '0.5rem' }}
-          />
         </div>
         <button
           type="submit"
@@ -81,7 +87,8 @@ const LoginForm: React.FC = () => {
             borderRadius: '0.5rem',
             fontWeight: 'bold',
             cursor: 'pointer',
-            justifySelf: 'flex-end',
+            top: 0,
+            left: 0
           }}
         >
           Login

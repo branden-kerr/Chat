@@ -1,23 +1,12 @@
 import React, { useContext } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { FirebaseContext } from '../Authentication/providers/FirebaseProvider';
 import { AuthContext } from '../Authentication/context/authContext';
-import { doc, setDoc } from 'firebase/firestore';
-import { User } from '../../types/user';
-import { faker } from '@faker-js/faker';
+import * as Yup from 'yup';
+import { toast } from 'react-hot-toast';
 
 const SignUp: React.FC = () => {
 
-  const { myFS, } = useContext(FirebaseContext);
-  const { googleSignIn, register } = useContext(AuthContext);
-
-
-  const handleSignup = async (values: any) => {
-    await register(
-      values.email,
-      values.password,
-    );
-  };
+  const { register } = useContext(AuthContext);
 
   return (
     <Formik
@@ -25,82 +14,46 @@ const SignUp: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        username: '',
-        firstName: '',
-        lastName: '',
       }}
-
-      onSubmit={handleSignup}
+      validationSchema={Yup.object().shape({
+        email: Yup.string()
+          .email('Invalid email address')
+          .required('Email is required'),
+        password: Yup.string()
+          .required('Password is required'),
+        confirmPassword: Yup.string()
+          .oneOf([Yup.ref('password'), undefined], 'Passwords must match')
+          .required('Confirm password is required'),
+      })}
+      onSubmit={async (values: any) => {
+        try {
+          await register(
+            values.email,
+            values.password,
+          );
+        } catch (e: any) {
+          toast.error(e.message);
+        }
+      }}
     >
-      <Form style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="email" style={{ fontWeight: 'bold' }}>
-            Email:
-          </label>
-          <Field
-            type="email"
-            name="email"
-            id="email"
-            required
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ddd',
-              width: '100%',
-            }}
-          />
-          <ErrorMessage
-            name="email"
-            component="div"
-            style={{ color: 'red', marginTop: '0.5rem' }}
-          />
-        </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="password" style={{ fontWeight: 'bold' }}>
-            Password:
-          </label>
-          <Field
-            type="password"
-            name="password"
-            id="password"
-            required
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ddd',
-              width: '100%',
-            }}
-          />
-          <ErrorMessage
-            name="password"
-            component="div"
-            style={{ color: 'red', marginTop: '0.5rem' }}
-          />
-        </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="confirmPassword" style={{ fontWeight: 'bold' }}>
-            Confirm Password:
-          </label>
-          <Field
-            type="password"
-            name="confirmPassword"
-            id="confirmPassword"
-            required
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ddd',
-              width: '100%',
-            }}
-          />
-          {/* <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="username" style={{ fontWeight: 'bold' }}>
-              Username:
+      <Form style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-evenly',
+        height: '80%',
+        width: '100%',
+        // backgroundColor: 'green',
+        position: 'relative',
+      }}>
+        <div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="email" style={{ fontWeight: 'bold' }}>
+              Email:
             </label>
             <Field
-              type="text"
-              name="username"
-              id="username"
+              type="email"
+              name="email"
+              id="email"
               required
               style={{
                 padding: '0.5rem',
@@ -110,19 +63,19 @@ const SignUp: React.FC = () => {
               }}
             />
             <ErrorMessage
-              name="username"
+              name="email"
               component="div"
               style={{ color: 'red', marginTop: '0.5rem' }}
             />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="firstName" style={{ fontWeight: 'bold' }}>
-              First Name:
+            <label htmlFor="password" style={{ fontWeight: 'bold' }}>
+              Password:
             </label>
             <Field
-              type="text"
-              name="firstName"
-              id="firstName"
+              type="password"
+              name="password"
+              id="password"
               required
               style={{
                 padding: '0.5rem',
@@ -132,19 +85,22 @@ const SignUp: React.FC = () => {
               }}
             />
             <ErrorMessage
-              name="firstName"
+              name="password"
               component="div"
-              style={{ color: 'red', marginTop: '0.5rem' }}
+              style={{
+                color: 'red',
+                marginTop: '0.5rem'
+              }}
             />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="lastName" style={{ fontWeight: 'bold' }}>
-              Last Name:
+            <label htmlFor="confirmPassword" style={{ fontWeight: 'bold' }}>
+              Confirm Password:
             </label>
             <Field
-              type="text"
-              name="lastName"
-              id="lastName"
+              type="password"
+              name="confirmPassword"
+              id="confirmPassword"
               required
               style={{
                 padding: '0.5rem',
@@ -153,13 +109,13 @@ const SignUp: React.FC = () => {
                 width: '100%',
               }}
             />
-
             <ErrorMessage
               name="confirmPassword"
               component="div"
               style={{ color: 'red', marginTop: '0.5rem' }}
             />
-          </div> */}
+
+          </div>
         </div>
         <button
           type="submit"
@@ -171,6 +127,7 @@ const SignUp: React.FC = () => {
             borderRadius: '0.5rem',
             fontWeight: 'bold',
             cursor: 'pointer',
+
           }}
         >
           Sign Up

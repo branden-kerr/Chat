@@ -8,14 +8,33 @@ import LoginForm from './Forms/LoginForm';
 import SignUp from './Forms/SignUp';
 import { useContext } from 'react';
 import { SignUpModalContext } from '../Contexts/ModalContext';
+import { styled } from "@mui/system";
+
+const StyledModal = styled('div')({
+  position: 'relative',
+  borderRadius: '8px',
+  width: '50vh',
+  height: '60vh',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  "&::before": {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: `url(${circuits}) center/cover no-repeat`,
+    zIndex: -1,
+    filter: 'brightness(0.85)'
+  }
+});
 
 const Landing: React.FC = () => {
-  const { myFS } = useContext(FirebaseContext);
-  const { googleSignIn } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('login'); // State to track the active tab (login or signup)
   const modalRef = useRef<HTMLDivElement>(null);
-
-
   const signUpModal = useContext(SignUpModalContext);
 
   if (!signUpModal) {
@@ -128,26 +147,7 @@ const Landing: React.FC = () => {
             backgroundColor: 'rgba(52, 16, 63, 0.5)',
           }}
         >
-          <div
-            ref={modalRef}
-            style={{
-              position: 'relative',
-              borderRadius: '8px',
-              backgroundColor: 'rgb(255, 255, 255)',
-              backdropFilter: 'blur(10px)',
-              width: '450px',
-              height: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              // change xmlns:svg to xmlnsSvg
-              backgroundImage: `url(${circuits})`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
+          <StyledModal ref={modalRef}>
             <CloseIcon
               style={{
                 position: 'absolute',
@@ -159,18 +159,20 @@ const Landing: React.FC = () => {
             />
             <div
               style={{
-                width: '300px',
-                height: '75%',
+                width: '75%',
+                height: '65%',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                // backgroundColor: 'red'
               }}
             >
               <div
                 style={{
-                  marginBottom: '24px',
-                  backgroundColor: '#5C53FE',
                   borderRadius: '10px',
                   width: '75%',
+                  height: '10%',
                   alignSelf: 'center',
                   display: 'flex',
                   overflow: 'hidden'
@@ -180,13 +182,13 @@ const Landing: React.FC = () => {
                   style={{
                     cursor: 'pointer',
                     backgroundColor: activeTab === 'login' ? '#1877f2' : '#5C53FE',
-                    color: activeTab === 'login' ? '#ffffff' : '#c0c0c0',
+                    color: 'white',
                     fontWeight: 'bold',
                     width: '50%',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    padding: '15px'
+                    height: '100%'
                   }}
                   onClick={() => handleTabChange('login')}
                 >
@@ -196,13 +198,13 @@ const Landing: React.FC = () => {
                   style={{
                     cursor: 'pointer',
                     backgroundColor: activeTab === 'signup' ? '#1877f2' : '#5C53FE',
-                    color: activeTab === 'signup' ? '#ffffff' : '#c0c0c0',
                     fontWeight: 'bold',
                     width: '50%',
                     display: 'flex',
+                    color: 'white',
                     justifyContent: 'center',
-                    alignItems: 'center', // added
-                    padding: '15px' // added
+                    alignItems: 'center',
+                    height: '100%'
                   }}
                   onClick={() => handleTabChange('signup')}
                 >
@@ -215,7 +217,7 @@ const Landing: React.FC = () => {
                 <SignUp />
               )}
             </div>
-          </div>
+          </StyledModal>
         </div>
       )}
     </div>
