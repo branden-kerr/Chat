@@ -9,7 +9,7 @@ import ThemeContext from "../../Theme/ThemeContext";
 import SideBarChat from "./SideBarChat";
 import ChatInput from "./ChatInput";
 import { collection, doc, getDocs, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, ref, serverTimestamp, set, orderByChild } from "firebase/database";
+import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, ref, serverTimestamp, set, orderByChild, update } from "firebase/database";
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import { useLocation } from 'react-router-dom';
 import { SettingsModalContext, NewChatModalContext } from '../../Contexts/ModalContext';
@@ -42,18 +42,7 @@ const StyledDeleteIcon = styled(DeleteIcon)({
   opacity: 0,
   transition: 'opacity 0.2s, transform 0.2s',
 });
-function generateRandomTime(number?: boolean): any {
-  const currentTime = new Date();
-  const pastTime = faker.date.between(faker.date.recent(), currentTime);
 
-  if (number) {
-    return pastTime.getTime();
-  }
-  const tempDateNumber = new Date(pastTime.getTime());
-  return (
-    ` ${tempDateNumber.getDay()}/${tempDateNumber.getMonth()}/${tempDateNumber.getFullYear()}/`
-  )
-}
 const ChatList: React.FC<ChatListProps> = () => {
   const [messageCount, setMessageCount] = useState(50);
   const { profile } = useContext(AuthContext);
@@ -150,11 +139,12 @@ const ChatList: React.FC<ChatListProps> = () => {
                 updatedConversation.lastMessage = actualMessage.content;
                 updatedConversation.lastInteractionTime = actualMessage.timeSent;
                 const updatedConversations = [...prevConversations];
-                updatedConversations[ConversationToUpdate] = updatedConversation;
+                updatedConversations.splice(ConversationToUpdate, 1);
+                updatedConversations.push(updatedConversation);
                 return updatedConversations;
               });
 
-              if (retrievedUser && firstMessage) {
+              if (retrievedUser && !firstMessage) {
                 const conversation: Conversation = {
                   id: selectedConversation,
                   otherPersonId: retrievedUser.uid,
@@ -173,7 +163,7 @@ const ChatList: React.FC<ChatListProps> = () => {
                 };
                 const user1ConversationRef = doc(myFS, 'users', profile.uid, 'conversations', `${conversation.id}_${profile.username}`);
                 const user2ConversationRef = doc(myFS, 'users', retrievedUser.uid, 'conversations', `${conversation.id}_${retrievedUser.username}`);
-                setFirstMessage(false);
+                setFirstMessage(true);
                 return Promise.all([
                   setDoc(user1ConversationRef, conversation),
                   setDoc(user2ConversationRef, conversationForOther),
@@ -196,7 +186,6 @@ const ChatList: React.FC<ChatListProps> = () => {
 
   const handleDeleteMessage = (messageId: string) => {
     if (selectedConversation) {
-      // Remove the message from the cache
       const updatedMessages = messagesCache[selectedConversation]?.filter((msg) => msg.id !== messageId) || [];
       const messageToDelete = messagesCache[selectedConversation]?.find((msg) => msg.id === messageId);
 
@@ -205,12 +194,10 @@ const ChatList: React.FC<ChatListProps> = () => {
         [selectedConversation]: updatedMessages,
       }));
 
-      // Delete the message from the database
       const messageRef = ref(myRLDB, `conversations/${selectedConversation}/messages/${messageId}`);
       set(messageRef, null).catch((error) => {
         console.error("Error deleting message: ", error);
 
-        // If there's an error, add the message back to the cache at the correct position
         setMessagesCache((prevCache) => {
           const prevMessages = prevCache[selectedConversation] || [];
           const messageIndex = prevMessages.findIndex((msg) => msg.id === messageId);
@@ -230,6 +217,19 @@ const ChatList: React.FC<ChatListProps> = () => {
 
           return prevCache;
         });
+      });
+
+      // Locally changes conversations to reflect the lastInteractionTime and lastMessage
+      const conversationToUpdateIndex = conversations.findIndex(conversation => conversation.id === selectedConversation);
+      const lastMessage = updatedMessages[updatedMessages.length - 1];
+
+      setConversations(prevConversations => {
+        const updatedConversation = { ...prevConversations[conversationToUpdateIndex] };
+        updatedConversation.lastMessage = lastMessage ? lastMessage.content : '';
+        updatedConversation.lastInteractionTime = lastMessage ? lastMessage.timeSent : updatedConversation.lastInteractionTime;
+        const updatedConversations = [...prevConversations];
+        updatedConversations[conversationToUpdateIndex] = updatedConversation;
+        return updatedConversations;
       });
     }
   };
@@ -317,60 +317,6 @@ const ChatList: React.FC<ChatListProps> = () => {
     }
   }, [selectedConversation]);
 
-  // useEffect(() => {
-  //   if (profile && profile.uid && !gotConversations) {
-  //     try {
-  //       const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
-  //       getDocs(orderedConversationsRef)
-  //         .then(async (querySnapshot) => {
-  //           const fetchedConversations = querySnapshot.docs.map((doc) => {
-  //             return doc.data() as Conversation;
-  //           });
-
-  //           const newFetchedConversations = await Promise.all(
-  //             fetchedConversations.map(async (conversation) => {
-  //               const newConversation = { ...conversation };
-  //               const messagesRef = ref(myRLDB, `conversations/${conversation.id}/messages`);
-  //               const messagesQuery = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
-  //               const messagesSnapshot = await get(messagesQuery);
-
-  //               if (!messagesSnapshot.exists()) {
-  //                 messagesSnapshot.forEach((messageSnapshot) => {
-  //                   const message = messageSnapshot.val();
-  //                   const messageId = messageSnapshot.key;
-
-  //                   newConversation.lastInteractionTime = message.timeSent;
-  //                   newConversation.lastMessage = message.content || '';
-  //                 });
-  //               } else {
-  //                 newConversation.lastInteractionTime = new Date();
-  //                 newConversation.lastMessage = '';
-  //               }
-
-  //               const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${conversation.id}`);
-  //               await updateDoc(conversationFirestoreRef, {
-  //                 lastInteractionTime: newConversation.lastInteractionTime,
-  //                 lastMessage: 'newConversation.lastMessage',
-  //               });
-
-  //               return newConversation;
-  //             })
-  //           );
-
-  //           if (newFetchedConversations.length > 0) {
-  //             setConversations(newFetchedConversations);
-  //             if (!selectedConversation) {
-  //               setSelectedConversation(newFetchedConversations[0].id);
-  //             }
-  //           }
-  //         });
-  //     } catch (e) {
-  //       console.log(e);
-  //     }
-  //     setGotConversations(true);
-  //     setLoading(false);
-  //   }
-  // }, [profile, gotConversations, myFS, selectedConversation]);
 
   useEffect(() => {
     if (profile && profile.uid && !gotConversations) {
@@ -475,6 +421,7 @@ const ChatList: React.FC<ChatListProps> = () => {
           onClick={setSelectedConversation}
           selectedConversation={selectedConversation || ''}
           retrievedUser={retrievedUser}
+          setConversations={setConversations}
 
         />
         <div
@@ -497,9 +444,14 @@ const ChatList: React.FC<ChatListProps> = () => {
               inverse
               hasMore={true}
               loader={
-                firstMessage ? (
-                  <div className="flex justify-center py-3">
-                    {`Send your first message to ${conversations[conversations.findIndex(conversation => conversation.id === selectedConversation)].firstName} `}
+                !firstMessage ? (
+                  <div className="flex justify-center py-3"
+                    style={{
+                      color: 'white',
+                      marginTop: '8%',
+                    }}
+                  >
+                    No messages yet. Send a message to start a conversation.
                   </div>
                 ) : (
                   <div className="flex justify-center py-3">

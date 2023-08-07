@@ -8,7 +8,9 @@ import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import ChatIcon from '@mui/icons-material/Chat';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { styled } from '@mui/system';
-
+import DeleteIcon from '@mui/icons-material/Delete';
+import { deleteDoc, doc } from "firebase/firestore";
+import { ref, set } from "firebase/database";
 
 const styles = {
   SideBarcontainer: {
@@ -25,29 +27,35 @@ const StyledListItem = styled('li')({
   justifyContent: 'space-between',
   height: '12%',
   cursor: 'pointer',
-  '&:nth-of-type(odd)': {
-    backgroundColor: '#1a1c24',
-  },
+  // backgroundColor: '#1a1c24',
   '&:hover': {
-    backgroundColor: '#2a2c34', // or any other color
+    backgroundColor: '#264eee', // or any other color
   },
 });
+const StyledDeleteIcon = styled(DeleteIcon)({
+  transition: 'all 0.3s ease-in-out',
+  '&:hover': {
+    color: 'red',
+    transform: 'scale(1.2)',
+  }
+})
+
+
 interface SideBarChatProps {
   conversations: Conversation[];
   onClick: (conversation: any) => void;
   selectedConversation: string;
   retrievedUser?: any;
+  setConversations: (conversations: any) => void;
 }
 
 const SideBarChat: React.FC<SideBarChatProps> = (props) => {
-  const { conversations, retrievedUser, } = props;
+  const { conversations, retrievedUser, setConversations } = props;
   const endOfMessagesRef = React.useRef<null | HTMLLIElement>(null);
   const { profile } = useContext(AuthContext);
-  const { myFS }: any = useContext(FirebaseContext);
+  const { myFS, myRLDB }: any = useContext(FirebaseContext);
   const { toggle: toggleSettings } = useContext(SettingsModalContext);
   const { toggle: toggleNewChat } = useContext(NewChatModalContext);
-
-
   const avatarUrl = profile.displayPicture ? profile.displayPicture : '';
 
   useEffect(() => {
@@ -55,6 +63,29 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
       endOfMessagesRef.current.scrollIntoView({ behavior: "auto" });
     }
   }, [conversations]);
+
+  const handleDeleteConversation = async (conversationId: string) => {
+
+    const conversationToDeleteIndex = conversations.findIndex((conversation: Conversation) => conversation.id === conversationId);
+    const conversationToDelete = conversations[conversationToDeleteIndex];
+
+    try {
+      await deleteDoc(doc(myFS, `users/${profile.uid}/conversations/${conversationId}`));
+      setConversations((prevConversations: any) => {
+        return prevConversations.filter((conversation: Conversation) => conversation.id !== conversationId);
+      });
+      const conversationRef = ref(myRLDB, 'conversations/' + conversationId);
+      await set(conversationRef, null);
+      console.log("Conversation successfully deleted!");
+    } catch (error) {
+      setConversations((prevConversations: Conversation[]) => {
+        const updatedConversations = [...prevConversations];
+        updatedConversations.splice(conversationToDeleteIndex, 0, conversationToDelete);
+        return updatedConversations;
+      });
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -158,6 +189,9 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                     key={conversation.id}
                     onClick={() => props.onClick(conversation.id)}
                     ref={index === conversations.length - 1 ? endOfMessagesRef : null}
+                    style={{
+                      backgroundColor: props.selectedConversation === conversation.id ? '#2a2c34' : 'initial',
+                    }}
                   >
                     <div
                       style={{
@@ -199,7 +233,11 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                           }}
                         >
                           <span>
-                            {conversation.lastMessage ? conversation.lastMessage : 'No messages yet'}
+                            {conversation.lastMessage
+                              ? conversation.lastMessage.length > 40
+                                ? conversation.lastMessage.slice(0, 40) + '...'
+                                : conversation.lastMessage
+                              : 'No messages yet'}
                           </span>
                           <span
                             style={{ fontStyle: 'italic' }}
@@ -209,7 +247,27 @@ const SideBarChat: React.FC<SideBarChatProps> = (props) => {
                       </div>
 
                     </div>
-                    <ArrowForwardIcon />
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        justifyContent: 'space-evenly',
+                      }}
+                    >
+                      <ArrowForwardIcon />
+                      <StyledDeleteIcon
+
+                        onClick={() => {
+                          handleDeleteConversation(conversation.id)
+                        }
+                        }
+                      />
+
+                    </div>
+
+
                   </StyledListItem>
                 )
               })
