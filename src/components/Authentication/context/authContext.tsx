@@ -123,10 +123,23 @@ export const AuthProvider = (props: any) => {
       setUser(user);
       return true;
     } catch (ex: any) {
-      let msg = `Login failure for email(${email}: ${ex.message})`;
-      console.error(msg);
+      console.error(`signInFunction() failed with: ${ex.message}`);
       setAuthErrorMessage(ex.message);
-      return false;
+      let userFriendlyMessage;
+      switch (ex.code) {
+        case 'auth/user-not-found':
+          userFriendlyMessage = 'The email address is not registered.';
+          break;
+        case 'auth/wrong-password':
+          userFriendlyMessage = 'The password is incorrect.';
+          break;
+        case 'auth/invalid-email':
+          userFriendlyMessage = 'The email address is not valid.';
+          break;
+        default:
+          userFriendlyMessage = 'An unexpected error occurred. Please try again later.';
+      }
+      throw new Error(userFriendlyMessage);
     }
   };
 

@@ -2,13 +2,17 @@ import React, { useContext } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { FirebaseContext } from '../Authentication/providers/FirebaseProvider';
 import { AuthContext } from '../Authentication/context/authContext';
+import toast from 'react-hot-toast';
+import * as Yup from 'yup';
 
 const LoginForm: React.FC = () => {
-
   const { login } = useContext(AuthContext);
-
-  const handleLogin = (values: any) => {
-    login(values.email, values.password);
+  const handleLogin = async (values: any) => {
+    try {
+      await login(values.email, values.password);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
     console.log(values);
   };
 
@@ -16,6 +20,14 @@ const LoginForm: React.FC = () => {
     <Formik
       initialValues={{ email: '', password: '' }}
       onSubmit={handleLogin}
+      validationSchema={Yup.object().shape({
+        email: Yup.string()
+          .email('Invalid email address')
+          .required('Email is required'),
+        password: Yup.string()
+          .required('Password is required'),
+      })
+      }
     >
       <Form style={{
         display: 'flex',

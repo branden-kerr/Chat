@@ -47,7 +47,10 @@ const SignUp: React.FC = () => {
       }}>
         <div>
           <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="email" style={{ fontWeight: 'bold' }}>
+            <label htmlFor="email"
+              style={{
+                fontWeight: 'bold'
+              }}>
               Email:
             </label>
             <Field

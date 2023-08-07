@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Conversation, Message } from "../../types";
+import { Conversation, Message, User } from "../../types";
 import { faker } from '@faker-js/faker';
 import { v4 as uuidv4 } from 'uuid';
 import InfiniteScroll from "react-infinite-scroll-component";
@@ -8,7 +8,7 @@ import { AuthContext } from "../Authentication/context/authContext";
 import ThemeContext from "../../Theme/ThemeContext";
 import SideBarChat from "./SideBarChat";
 import ChatInput from "./ChatInput";
-import { collection, doc, getDocs, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { get, limitToLast, off, onChildAdded, query as rtdbQuery, onChildChanged, onChildRemoved, ref, serverTimestamp, set, orderByChild, update } from "firebase/database";
 import { FirebaseContext } from "../Authentication/providers/FirebaseProvider";
 import { useLocation } from 'react-router-dom';
@@ -43,6 +43,37 @@ const StyledDeleteIcon = styled(DeleteIcon)({
   transition: 'opacity 0.2s, transform 0.2s',
 });
 
+const ModalOverlay = styled('div')({
+  position: 'fixed',
+  top: '0',
+  left: '0',
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(52, 16, 63, 0.5)',
+  transition: 'all 0.3s ease',
+});
+
+const ModalContainer = styled('div')({
+  position: 'relative',
+  borderRadius: '8px',
+  backgroundColor: 'rgb(233, 233, 233)',
+  padding: '0 30px',
+  backdropFilter: 'blur(10px)',
+  width: '60vh',
+  height: '60vh',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  boxShadow: '0px 10px 20px rgba(0,0,0,0.1)',
+});
+
 const ChatList: React.FC<ChatListProps> = () => {
   const [messageCount, setMessageCount] = useState(50);
   const { profile } = useContext(AuthContext);
@@ -62,7 +93,37 @@ const ChatList: React.FC<ChatListProps> = () => {
   const [firstMessage, setFirstMessage] = useState<boolean>(false);
   const { isOpen: isSettingsOpen, toggle: toggleSettings } = useContext(SettingsModalContext);
   const { isOpen: isNewChatOpen, toggle: toggleNewChat } = useContext(NewChatModalContext);
+  const [users, setUsers] = useState<Partial<User>[]>([]);
 
+  // useEffect(() => {
+  //   if (profile && profile.uid) {
+  //     const unsubscribe = onSnapshot(query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc')), async (snapshot) => {
+
+
+  //       for (const doc of snapshot.docs) {
+  //         const conversation = doc.data() as Conversation;
+
+  //         console.log(conversation);
+  //       }
+
+
+  //     });
+
+  //     return () => {
+  //       unsubscribe();
+  //     };
+  //   }
+  // }, [profile]);
+
+  // Gets all users. This being a small app, getiting all is okay
+  useEffect(() => {
+    (async () => {
+      const usersRef = collection(myFS, 'users');
+      const usersSnapshot = await getDocs(usersRef);
+      const usersData = usersSnapshot.docs.map(doc => doc.data() as User);
+      setUsers(usersData.map(({ emailVerified, email, ...rest }) => rest));
+    })()
+  }, [])
 
   useEffect(() => {
     if (retrievedUser && !addedToConversations) {
@@ -511,11 +572,44 @@ const ChatList: React.FC<ChatListProps> = () => {
         </div>
       </div>
       {isSettingsOpen && (
-        <SettingsModal />
+        <ModalOverlay>
+          <div
+            style={{
+              position: 'relative',
+              borderRadius: '8px',
+              backgroundColor: 'rgb(233, 233, 233)',
+              padding: '0 30px',
+              backdropFilter: 'blur(10px)',
+              width: '60vh',
+              height: '60vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0px 10px 20px rgba(0,0,0,0.1)',
+
+            }}
+          >
+            <SettingsModal
+            />
+          </div>
+        </ModalOverlay>
       )}
       {
         isNewChatOpen && (
-          <NewChatModal setSelectedConversation={setSelectedConversation} setGotConversations={setGotConversations} />
+          <ModalOverlay>
+            <ModalContainer>
+              <NewChatModal
+                setSelectedConversation={setSelectedConversation}
+                setGotConversations={setGotConversations}
+                users={users}
+                conversations={conversations}
+              />
+            </ModalContainer>
+          </ModalOverlay>
         )
       }
     </>
