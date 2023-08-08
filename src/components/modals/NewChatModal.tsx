@@ -31,6 +31,7 @@ const UserFirstNameLastNameSpan = styled('div')<{ isActive: boolean }>(
 
 interface NewChatModalProps {
   setSelectedConversation: (conversation: string) => void;
+  setConversations: (conversations: Conversation[]) => void;
   setGotConversations: (gotConversations: boolean) => void;
   conversations: Conversation[] | undefined;
   users: Partial<User>[];
@@ -41,7 +42,7 @@ const NewChatModal: React.FC<NewChatModalProps> = (props) => {
   const { myFS } = useContext(FirebaseContext);
   const { toggle: toggleNewChat } = useContext(NewChatModalContext);
   const [selectedPerson, setSelectedPerson] = useState<Conversation | null>(null);
-  const { setSelectedConversation, setGotConversations, users, conversations } = props;
+  const { setSelectedConversation, setGotConversations, users, conversations, setConversations } = props;
   const [activeTab, setActiveTab] = useState<string>('generic');
 
   const handlePersonSelect = (person: Conversation) => {
@@ -52,11 +53,13 @@ const NewChatModal: React.FC<NewChatModalProps> = (props) => {
     if (selectedPerson) {
       if (conversations
         && conversations.length > 0
-        && conversations?.findIndex((conversation) => conversation.otherPersonId !== selectedPerson.otherPersonId) === -1
+        && conversations?.findIndex((conversation) => conversation.otherPersonId === selectedPerson.otherPersonId) !== -1
       ) {
         toggleNewChat();
-        return setSelectedConversation(selectedPerson.id);
+        return setSelectedConversation(conversations.find((conversation) => conversation.otherPersonId === selectedPerson.otherPersonId)?.id as string);
       }
+
+      toggleNewChat();
       const newConversationID = uuidv4();
       const lastInteractionTime = new Date();
 
@@ -70,14 +73,24 @@ const NewChatModal: React.FC<NewChatModalProps> = (props) => {
         displayPicture: selectedPerson.displayPicture,
       };
       const conversationsRef = doc(myFS, `users/${profile.uid}/conversations/${newConversationID}`);
+
+
       if (isNewUser) {
         const otherPersonConversationRef = doc(myFS, `users/${selectedPerson.otherPersonId}/conversations/${newConversationID}`);
-        await setDoc(otherPersonConversationRef, conversationData);
+        const conversationForOther: Conversation = {
+          id: newConversationID,
+          otherPersonId: profile.uid,
+          username: profile.username,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          lastInteractionTime: lastInteractionTime,
+          displayPicture: profile.displayPicture,
+        };
+        await setDoc(otherPersonConversationRef, conversationForOther);
       }
       await setDoc(conversationsRef, conversationData)
       setSelectedConversation(newConversationID);
-      setGotConversations(false);
-      toggleNewChat();
+      // setGotConversations(false);
     }
   };
 

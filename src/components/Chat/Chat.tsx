@@ -95,25 +95,54 @@ const ChatList: React.FC<ChatListProps> = () => {
   const { isOpen: isNewChatOpen, toggle: toggleNewChat } = useContext(NewChatModalContext);
   const [users, setUsers] = useState<Partial<User>[]>([]);
 
-  // useEffect(() => {
-  //   if (profile && profile.uid) {
-  //     const unsubscribe = onSnapshot(query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc')), async (snapshot) => {
+  useEffect(() => {
+    if (profile && profile.uid && !gotConversations) {
+      const unsubscribe = onSnapshot(
+        query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc')),
+        async (snapshot) => {
+          setLoading(false);
 
+          const newConversations: Conversation[] = [];
+          await Promise.all(
+            snapshot.docChanges().map(async (change) => {
+              if (change.type === 'added') {
+                const newConversation = change.doc.data() as Conversation;
 
-  //       for (const doc of snapshot.docs) {
-  //         const conversation = doc.data() as Conversation;
+                if (!gotConversations) {
+                  const messagesRef = ref(myRLDB, `conversations/${newConversation.id}/messages`);
+                  const limitedMessagesRef = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
+                  const messagesSnapshot = await get(limitedMessagesRef);
+                  const message = messagesSnapshot.val() || {};
 
-  //         console.log(conversation);
-  //       }
+                  if (messagesSnapshot.exists()) {
+                    const messageValue = Object.values(message)[0] as Message;
+                    const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${newConversation.id}`);
+                    await updateDoc(conversationFirestoreRef, {
+                      lastInteractionTime: messageValue.timeSent,
+                      lastMessage: messageValue.content ? messageValue.content : '',
+                    });
+                    newConversation.lastInteractionTime = messageValue.timeSent;
+                    newConversation.lastMessage = messageValue.content ? messageValue.content : '';
+                  } else {
+                    newConversation.lastInteractionTime = new Date();
+                    newConversation.lastMessage = '';
+                  }
+                  newConversations.push(newConversation);
 
+                }
+              }
+            })
+          );
+          setConversations((prevConversations) => [...prevConversations, ...newConversations,]);
+          setGotConversations(true);
+        }
+      );
 
-  //     });
-
-  //     return () => {
-  //       unsubscribe();
-  //     };
-  //   }
-  // }, [profile]);
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [profile]);
 
   // Gets all users. This being a small app, getiting all is okay
   useEffect(() => {
@@ -124,34 +153,6 @@ const ChatList: React.FC<ChatListProps> = () => {
       setUsers(usersData.map(({ emailVerified, email, ...rest }) => rest));
     })()
   }, [])
-
-  useEffect(() => {
-    if (retrievedUser && !addedToConversations) {
-      // Query Firestore for a conversation where otherPersonId is equal to retrievedUser.uid
-      const userConversationsRef = collection(myFS, `users/${profile.uid}/conversations`);
-      const queryRef = query(userConversationsRef, where("otherPersonId", "==", retrievedUser.uid));
-
-      getDocs(queryRef).then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-          const existingConversation = querySnapshot.docs[0];
-          setSelectedConversation(existingConversation.id);
-        } else {
-          const newConversation = {
-            id: uuidv4(),
-            otherPersonId: retrievedUser.uid,
-            username: retrievedUser.username,
-            lastInteractionTime: Date.now(),
-            lastMessage: '',
-            displayPicture: retrievedUser.displayPicture
-          }
-          setConversations([newConversation]);
-          setSelectedConversation(newConversation.id);
-          setAddedToConversations(true);
-          setFirstMessage(true);
-        }
-      });
-    }
-  }, [conversations])
 
   if (selectedConversation !== undefined) {
     messagesArray = messagesCache[selectedConversation] || [];
@@ -303,7 +304,6 @@ const ChatList: React.FC<ChatListProps> = () => {
       const handleNewMessage = (snapshot: any) => {
         const message = snapshot.val();
         const id = snapshot.key;
-
         setMessagesCache(prevCache => {
           const existingMessages = prevCache[selectedConversation] || [];
 
@@ -316,18 +316,15 @@ const ChatList: React.FC<ChatListProps> = () => {
         });
       };
 
-      // Handle updated messages.
       const handleUpdatedMessage = (snapshot: any) => {
         const updatedMessage = snapshot.val();
         const id = snapshot.key;
 
         setMessagesCache(prevCache => {
-          // Find the message to update in the cache.
           const existingMessages = prevCache[selectedConversation];
           const messageIndex = existingMessages.findIndex(message => message.id === id);
 
           if (messageIndex >= 0) {
-            // Replace the old message with the updated one.
             const updatedMessages = [...existingMessages];
             updatedMessages[messageIndex] = { ...updatedMessage, id };
 
@@ -379,57 +376,57 @@ const ChatList: React.FC<ChatListProps> = () => {
   }, [selectedConversation]);
 
 
-  useEffect(() => {
-    if (profile && profile.uid && !gotConversations) {
-      try {
-        const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
-        getDocs(orderedConversationsRef)
-          .then(async (querySnapshot) => {
-            const fetchedConversations = querySnapshot.docs.map(doc => {
-              return doc.data() as Conversation;
-            });
+  // useEffect(() => {
+  //   if (profile && profile.uid && !gotConversations) {
+  //     try {
+  //       const orderedConversationsRef = query(collection(myFS, `users/${profile.uid}/conversations`), orderBy('lastInteractionTime', 'asc'));
+  //       getDocs(orderedConversationsRef)
+  //         .then(async (querySnapshot) => {
+  //           const fetchedConversations = querySnapshot.docs.map(doc => {
+  //             return doc.data() as Conversation;
+  //           });
 
-            const newFetchedConversations = await Promise.all(
-              fetchedConversations.map(async (conversation) => {
-                const newConversation = { ...conversation };
-                const messagesRef = ref(myRLDB, `conversations/${conversation.id}/messages`);
-                const limitedMessagesRef = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
-                const messagesSnapshot = await get(limitedMessagesRef);
-                const message = messagesSnapshot.val() || {};
+  //           const newFetchedConversations = await Promise.all(
+  //             fetchedConversations.map(async (conversation) => {
+  //               const newConversation = { ...conversation };
+  //               const messagesRef = ref(myRLDB, `conversations/${conversation.id}/messages`);
+  //               const limitedMessagesRef = rtdbQuery(messagesRef, orderByChild('timeSent'), limitToLast(1));
+  //               const messagesSnapshot = await get(limitedMessagesRef);
+  //               const message = messagesSnapshot.val() || {};
 
-                if (messagesSnapshot.exists()) {
-                  const messageValue = Object.values(message)[0] as Message;
-                  const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${conversation.id}`);
-                  await updateDoc(conversationFirestoreRef, {
-                    lastInteractionTime: messageValue.timeSent,
-                    lastMessage: messageValue.content ? messageValue.content : '',
-                  });
+  //               if (messagesSnapshot.exists()) {
+  //                 const messageValue = Object.values(message)[0] as Message;
+  //                 const conversationFirestoreRef = doc(myFS, `users/${profile.uid}/conversations/${conversation.id}`);
+  //                 await updateDoc(conversationFirestoreRef, {
+  //                   lastInteractionTime: messageValue.timeSent,
+  //                   lastMessage: messageValue.content ? messageValue.content : '',
+  //                 });
 
-                  newConversation.lastInteractionTime = messageValue.timeSent;
-                  newConversation.lastMessage = messageValue.content ? messageValue.content : '';
-                } else {
-                  newConversation.lastInteractionTime = new Date();
-                  newConversation.lastMessage = '';
-                }
+  //                 newConversation.lastInteractionTime = messageValue.timeSent;
+  //                 newConversation.lastMessage = messageValue.content ? messageValue.content : '';
+  //               } else {
+  //                 newConversation.lastInteractionTime = new Date();
+  //                 newConversation.lastMessage = '';
+  //               }
 
-                return newConversation;
-              })
-            );
+  //               return newConversation;
+  //             })
+  //           );
 
-            if (newFetchedConversations.length > 0) {
-              setConversations(newFetchedConversations);
-              if (!selectedConversation) {
-                setSelectedConversation(newFetchedConversations[0].id);
-              }
-            }
-          });
-      } catch (e) {
-        console.log(e);
-      }
-      setGotConversations(true);
-      setLoading(false);
-    }
-  }, [profile, gotConversations, myFS, selectedConversation]);
+  //           if (newFetchedConversations.length > 0) {
+  //             setConversations(newFetchedConversations);
+  //             if (!selectedConversation) {
+  //               setSelectedConversation(newFetchedConversations[0].id);
+  //             }
+  //           }
+  //         });
+  //     } catch (e) {
+  //       console.log(e);
+  //     }
+  //     setGotConversations(true);
+  //     setLoading(false);
+  //   }
+  // }, [profile, gotConversations, myFS, selectedConversation]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -604,6 +601,7 @@ const ChatList: React.FC<ChatListProps> = () => {
             <ModalContainer>
               <NewChatModal
                 setSelectedConversation={setSelectedConversation}
+                setConversations={setConversations}
                 setGotConversations={setGotConversations}
                 users={users}
                 conversations={conversations}
