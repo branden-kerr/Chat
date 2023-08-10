@@ -94,6 +94,7 @@ const NewChatModal: React.FC<NewChatModalProps> = (props) => {
     }
   };
 
+
   return (
     <>
       <div
