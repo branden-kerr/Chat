@@ -4,7 +4,8 @@
   "private": true,
   "engines": {
     "node": "16.x",
-    "npm": "8.x"
+    "npm": "8.x",
+    "yarn": "1.22.19"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -43,7 +44,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "yarn run build"
   },
   "eslintConfig": {
     "extends": [
