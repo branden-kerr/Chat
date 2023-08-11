@@ -47,7 +47,7 @@ export const FirebaseProvider = (props: any) => {
   const functions = getFunctions(myApp);
 
   useEffect(() => {
-    const shouldUseEmulator = true; // or true :)
+    const shouldUseEmulator = false; // or true :)
 
     if (shouldUseEmulator) {
       let mapEmulators: any = {};
