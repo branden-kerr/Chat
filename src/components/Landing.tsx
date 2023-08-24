@@ -32,6 +32,96 @@ const StyledModal = styled('div')({
   }
 });
 
+const Container = styled('div')({
+  width: '100%',
+  height: '100%',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(6, 1fr)',
+  gridTemplateRows: 'repeat(6, 1fr)',
+  '@media (max-width: 600px)': {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+})
+
+const TextContainer = styled('div')({
+  gridColumn: '1 / 4',
+  gridRow: '2 / 5',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  padding: '0 24px',
+})
+
+const StyledHeader = styled('h1')({
+  fontWeight: 'bold',
+  fontSize: '48px',
+  textAlign: 'left',
+  marginBottom: '24px',
+  color: 'white',
+  '@media (max-width: 880px)': {
+    fontSize: '36px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '26px',
+  },
+})
+
+const StyledSubHeader = styled('h4')({
+  fontSize: '24px',
+  textAlign: 'left',
+  marginBottom: '48px',
+  color: 'white',
+  '@media (max-width: 880px)': {
+    fontSize: '18px'
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '14px'
+  }
+})
+
+const GetStartedButton = styled('button')({
+  backgroundColor: '#FF4081',
+  color: 'white',
+  fontSize: '18px',
+  padding: '12px 24px',
+  borderRadius: '30px',
+  border: 'none',
+  '@media (max-width: 880px)': {
+    fontSize: '14px',
+    padding: '8px 16px',
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '12px',
+    padding: '6px 14px',
+  }
+})
+
+const BlobSVG = styled('svg')({
+  gridColumn: '4/6',
+  gridRow: '2/5',
+  width: '100%',
+  height: '100%',
+  '@media (max-width: 600px)': {
+    width: '20%',
+    height: '20%',
+    transform: 'translateY(-50%) translateX(40%)'
+  },
+  '@media (max-width: 396px)': {
+    width: '40%',
+    height: '42%',
+    transform: 'translateY(-50%) translateX(40%)'
+  },
+  '@media (max-width: 336px)': {
+    width: '40%',
+    height: '42%',
+    transform: 'translateY(-15%) translateX(-60%)'
+  }
+})
+
 const Landing: React.FC = () => {
   const [activeTab, setActiveTab] = useState('login'); // State to track the active tab (login or signup)
   const modalRef = useRef<HTMLDivElement>(null);
@@ -59,71 +149,23 @@ const Landing: React.FC = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
-        gridTemplateRows: 'repeat(6, 1fr)',
-      }}
-    >
-      <div
-        style={{
-          gridColumn: '1 / 4',
-          gridRow: '2 / 5',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          padding: '0 24px',
-        }}
-      >
-        <h1
-          style={{
-            fontWeight: 'bold',
-            fontSize: '48px',
-            textAlign: 'left',
-            marginBottom: '24px',
-            color: 'white',
-          }}
-        >
+    <Container>
+      <TextContainer >
+        <StyledHeader>
           Connect with your friends
-        </h1>
-        <h4
-          style={{
-            fontSize: '24px',
-            textAlign: 'left',
-            marginBottom: '48px',
-            color: 'white',
-          }}
-        >
+        </StyledHeader>
+        <StyledSubHeader>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </h4>
-        <button
-          style={{
-            backgroundColor: '#FF4081',
-            color: 'white',
-            fontSize: '18px',
-            padding: '12px 24px',
-            borderRadius: '30px',
-            border: 'none',
-          }}
+        </StyledSubHeader>
+        <GetStartedButton 
           onClick={toggleSignUp}
         >
           Get Started
-        </button>
-      </div>
-      <svg viewBox="-15 0 150 150"
-        style={{
-          gridColumn: '4/6',
-          gridRow: '2/5',
-          width: '100%',
-          height: '100%',
-        }}
-      >
+        </GetStartedButton>
+      </TextContainer>
+      <BlobSVG viewBox="-15 0 150 150" >
         <image href={blobAnimation} />
-      </svg>
+      </BlobSVG>
       <div
         style={{
           gridColumn: '4 / 7',
@@ -220,7 +262,7 @@ const Landing: React.FC = () => {
           </StyledModal>
         </div>
       )}
-    </div>
+    </Container>
   );
 };
 

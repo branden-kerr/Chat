@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Authentication/context/authContext';
 import { useContext } from 'react';
 import { SignUpModalContext } from '../../Contexts/ModalContext';
+import styled from '@emotion/styled';
 
-const headerStyles = {
+const HeaderContainer = styled('div')({
   gridColumn: '1 / 13',
   gridRow: '1 / 2',
   backgroundColor: '#1F1E2B',
@@ -11,7 +12,13 @@ const headerStyles = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '0 150px',
-};
+    '@media (max-width: 600px)': {
+    padding: '0 60px',
+  },
+    '@media (max-width: 300px)': {
+    padding: '0 30px',
+  },
+});
 
 const logoStyles = {
   marginRight: '15px',
@@ -35,7 +42,7 @@ const Header = () => {
   };
 
   return (
-    <header style={headerStyles}>
+    <HeaderContainer>
       <button style={logoStyles} onClick={handleLogoClick}>
         LOGO
       </button>
@@ -80,7 +87,7 @@ const Header = () => {
           </div>
         </div>
       )}
-    </header>
+    </HeaderContainer>
   );
 }
 
