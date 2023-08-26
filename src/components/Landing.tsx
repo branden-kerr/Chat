@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FirebaseContext } from "./Authentication/providers/FirebaseProvider";
 import blobAnimation from "../svgs/blobAnimation.svg";
 import circuits from "../svgs/circuits.svg";
-import { AuthContext } from "./Authentication/context/authContext";
 import CloseIcon from "@mui/icons-material/Close";
 import LoginForm from "./Forms/LoginForm";
 import SignUp from "./Forms/SignUp";
@@ -202,7 +200,6 @@ const Landing: React.FC = () => {
               }}
               onClick={toggleSignUp}
             />
-
             <div
               style={{
                 width: "75%",
